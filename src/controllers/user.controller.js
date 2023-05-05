@@ -1,6 +1,60 @@
 import { PrismaClient } from "@prisma/client";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
+
+export const generateToken = (req, res) => {
+  try {
+    const { user } = req.body;
+    const payload = { ...user };
+    const token = jwt.sign(payload, process.env.SECRET, { expiresIn: "1h" });
+    res.status(200).json({ ...user, token });
+  } catch (error) {
+    res.status(500).json({ error: true });
+  }
+};
+
+export const login = async (req, res, next) => {
+  const { email, password } = req.body;
+  console.log({ email });
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        email: email,
+      },
+    });
+
+    const isValidUser = bcrypt.compareSync(password, user.password);
+    if (isValidUser) {
+      next();
+    } else {
+      res
+        .status(401)
+        .json({ error: true, message: "User or password incorrect" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: true });
+  }
+};
+
+export const verifyToken = (req, res, next) => {
+  const token = req.header("Authorization").split(" ")[1];
+  console.log(token);
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET);
+    const { exp: expDate } = decoded;
+
+    if (Date.now() / 1000 > expDate) {
+      res.status(401).send;
+    } else {
+      next();
+    }
+  } catch (error) {
+    res.status(401).send("no");
+  }
+};
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -34,17 +88,16 @@ export const getOneUser = async (req, res) => {
   }
 };
 
+/*
 export const createUser = async (req, res) => {
-  try {
-    const newuser = await prisma.user.create({
-      data: req.body,
-    });
-    res.status(201).json(newuser);
-  } catch (error) {
-    res.status(500).json({ error: true });
-  }
+  const { email, password } = req.body;
+  const hash = bcrypt.hashSync(password, 12);
+  const user = await prisma.user.create({
+    data: { email, password: hash },
+  });
+  res.status(201).json(user);
 };
-
+*/
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -72,4 +125,13 @@ export const deleteUser = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: true });
   }
+};
+
+export const createUser = async (req, res) => {
+  const { email, password, first_name, last_name } = req.body;
+  const hash = bcrypt.hashSync(password, 12);
+  const user = await prisma.user.create({
+    data: { email, password: hash, first_name, last_name },
+  });
+  res.status(201).json(user);
 };
