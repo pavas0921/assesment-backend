@@ -15,7 +15,7 @@ router.get("/", verifyToken, getAllUsers);
 router.get("/:id", verifyToken, getOneUser);
 
 //Crear user
-router.post("/", verifyToken, createUser);
+router.post("/", createUser);
 
 //Update user
 router.put("/:id", verifyToken, updateUser);

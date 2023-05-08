@@ -4,6 +4,27 @@ import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
+const passwordValitdation = (password) => {
+  const caps = /[A-Z]/g;
+  const capsFound = password.match(caps);
+
+  const numbers = /[0-9]/g;
+  const numbersFound = password.match(numbers);
+
+  const specialChars = /[^a-zA-Z0-9\s_@]/g;
+  const specialCharsFound = password.match(specialChars);
+
+  if (
+    capsFound === null ||
+    numbersFound === null ||
+    specialCharsFound === null
+  ) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
 export const generateToken = (req, res) => {
   try {
     const { user } = req.body;
@@ -88,17 +109,25 @@ export const getOneUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   const { email, password, first_name, last_name } = req.body;
-  const hash = bcrypt.hashSync(password, 12);
+
   try {
-    const { id } = req.params;
-    const user = await prisma.user.update({
-      where: {
-        userid: +id,
-      },
-      data: { email, password: hash, first_name, last_name },
-    });
-    res.json(user);
+    if (passwordValitdation(password)) {
+      const { id } = req.params;
+      const hash = bcrypt.hashSync(password, 12);
+      const user = await prisma.user.update({
+        where: {
+          userid: +id,
+        },
+        data: { email, password: hash, first_name, last_name },
+      });
+      res.json(user);
+    } else {
+      const error =
+        "La contraseña debe tener al menos 8 caracteres y contener al menos una letra mayúscula, una letra minúscula, un número y un carácter especial.";
+      res.status(400).json(error);
+    }
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: true });
   }
 };
@@ -118,10 +147,19 @@ export const deleteUser = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-  const { email, password, first_name, last_name } = req.body;
-  const hash = bcrypt.hashSync(password, 12);
-  const user = await prisma.user.create({
-    data: { email, password: hash, first_name, last_name },
-  });
-  res.status(201).json(user);
+  try {
+    const { email, password, first_name, last_name } = req.body;
+
+    if (!passwordValitdation(password)) {
+      const error = "La contraseña no coumple con los requisitos de seguridad";
+      res.status(400).json(error);
+    } else {
+      console.log("entro al else");
+      const hash = bcrypt.hashSync(password, 12);
+      const user = await prisma.user.create({
+        data: { email, password: hash, first_name, last_name },
+      });
+      res.status(201).json(user);
+    }
+  } catch (error) {}
 };
