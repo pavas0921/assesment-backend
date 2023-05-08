@@ -6,23 +6,22 @@ import { updateUser } from "../controllers/user.controller.js";
 import { deleteUser } from "../controllers/user.controller.js";
 import { login } from "../controllers/user.controller.js";
 import { generateToken } from "../controllers/user.controller.js";
-//import { register } from "../controllers/user.controller.js";
 const router = express.Router();
 
 //get all users
 router.get("/", verifyToken, getAllUsers);
 
 //get user by id
-router.get("/:id", getOneUser);
+router.get("/:id", verifyToken, getOneUser);
 
 //Crear user
-router.post("/", createUser);
+router.post("/", verifyToken, createUser);
 
 //Update user
-router.put("/:id", updateUser);
+router.put("/:id", verifyToken, updateUser);
 
 //Delete user
-router.delete("/:id", deleteUser);
+router.delete("/:id", verifyToken, deleteUser);
 
 //login
 router.post("/login", login, generateToken);

@@ -17,7 +17,6 @@ export const generateToken = (req, res) => {
 
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
-  console.log({ email });
 
   try {
     const user = await prisma.user.findFirst({
@@ -41,7 +40,6 @@ export const login = async (req, res, next) => {
 
 export const verifyToken = (req, res, next) => {
   const token = req.header("Authorization").split(" ")[1];
-  console.log(token);
   try {
     const decoded = jwt.verify(token, process.env.SECRET);
     const { exp: expDate } = decoded;
@@ -88,24 +86,16 @@ export const getOneUser = async (req, res) => {
   }
 };
 
-/*
-export const createUser = async (req, res) => {
-  const { email, password } = req.body;
-  const hash = bcrypt.hashSync(password, 12);
-  const user = await prisma.user.create({
-    data: { email, password: hash },
-  });
-  res.status(201).json(user);
-};
-*/
 export const updateUser = async (req, res) => {
+  const { email, password, first_name, last_name } = req.body;
+  const hash = bcrypt.hashSync(password, 12);
   try {
     const { id } = req.params;
     const user = await prisma.user.update({
       where: {
         userid: +id,
       },
-      data: req.body,
+      data: { email, password: hash, first_name, last_name },
     });
     res.json(user);
   } catch (error) {

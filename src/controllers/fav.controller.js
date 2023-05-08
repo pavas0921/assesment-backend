@@ -1,6 +1,23 @@
 import { PrismaClient } from "@prisma/client";
+import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
+
+export const verifyToken = (req, res, next) => {
+  const token = req.header("Authorization").split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET);
+    const { exp: expDate } = decoded;
+
+    if (Date.now() / 1000 > expDate) {
+      res.status(401).send;
+    } else {
+      next();
+    }
+  } catch (error) {
+    res.status(401).send(error);
+  }
+};
 
 export const getAllFavs = async (req, res) => {
   try {
@@ -15,17 +32,17 @@ export const getAllFavs = async (req, res) => {
   }
 };
 
-export const getOneUser = async (req, res) => {
+export const getOneFav = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const user = await prisma.user.findUnique({
+    const fav = await prisma.fav.findUnique({
       where: {
-        userid: +id,
+        favid: +id,
       },
     });
-    if (user && Object.keys(user).length > 0) {
-      res.status(200).json(user);
+    if (fav && Object.keys(fav).length > 0) {
+      res.status(200).json(fav);
     } else {
       res.status(204).json({ error: true, messageError: "No content" });
     }
@@ -45,27 +62,27 @@ export const createFav = async (req, res) => {
   }
 };
 
-export const updateUser = async (req, res) => {
+export const updateFav = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await prisma.user.update({
+    const fav = await prisma.fav.update({
       where: {
-        userid: +id,
+        favid: +id,
       },
       data: req.body,
     });
-    res.json(user);
+    res.json(fav);
   } catch (error) {
     res.status(500).json({ error: true });
   }
 };
 
-export const deleteUser = async (req, res) => {
+export const deleteFav = async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await prisma.user.delete({
+    const deleted = await prisma.fav.delete({
       where: {
-        userid: +id,
+        favid: +id,
       },
     });
     res.json(deleted);
