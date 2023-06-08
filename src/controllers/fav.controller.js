@@ -52,12 +52,21 @@ export const getOneFav = async (req, res) => {
 };
 
 export const createFav = async (req, res) => {
+  console.log(req.body);
+  const { fav_name, fav_description, fav_link, userid, token } = req.body;
+  console.log(fav_name);
   try {
     const newfav = await prisma.fav.create({
-      data: req.body,
+      data: {
+        fav_name: fav_name,
+        fav_description: fav_description,
+        user_userid: +userid,
+        fav_link: fav_link,
+      },
     });
-    res.status(201).json(newfav);
+    res.status(201).json({ status: 201, data: newfav });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: true });
   }
 };
@@ -71,21 +80,23 @@ export const updateFav = async (req, res) => {
       },
       data: req.body,
     });
-    res.json(fav);
+    res.status(201).json({ status: 201, data: fav });
   } catch (error) {
     res.status(500).json({ error: true });
   }
 };
 
 export const deleteFav = async (req, res) => {
+  console.log("hola");
   try {
+    console.log("hola");
     const { id } = req.params;
     const deleted = await prisma.fav.delete({
       where: {
         favid: +id,
       },
     });
-    res.json(deleted);
+    res.status(201).json({ status: 201, data: deleted });
   } catch (error) {
     res.status(500).json({ error: true });
   }

@@ -28,9 +28,11 @@ const passwordValitdation = (password) => {
 export const generateToken = (req, res) => {
   try {
     const { user } = req.body;
-    const payload = { ...user };
+    const { userid } = user;
+    const payload = { userid };
+    console.log("payload**", payload);
     const token = jwt.sign(payload, process.env.SECRET, { expiresIn: "1h" });
-    res.status(200).json({ ...user, token });
+    res.status(200).json({ userid, token });
   } catch (error) {
     res.status(500).json({ error: true });
   }
@@ -48,6 +50,7 @@ export const login = async (req, res, next) => {
 
     const isValidUser = bcrypt.compareSync(password, user.password);
     if (isValidUser) {
+      req.body.user = user;
       next();
     } else {
       res
@@ -133,6 +136,7 @@ export const updateUser = async (req, res) => {
 };
 
 export const deleteUser = async (req, res) => {
+  console.log("hola");
   try {
     const { id } = req.params;
     const deleted = await prisma.user.delete({
@@ -156,10 +160,13 @@ export const createUser = async (req, res) => {
     } else {
       console.log("entro al else");
       const hash = bcrypt.hashSync(password, 12);
+      console.log("hash", hash);
       const user = await prisma.user.create({
         data: { email, password: hash, first_name, last_name },
       });
       res.status(201).json(user);
     }
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };
