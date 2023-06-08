@@ -1,7 +1,13 @@
 {
-  "appId": "your-app-id",
-  "framework": "nodejs",
-  "build": {
-    "target": "node16"
-  }
+  "version": 2,
+  "builds": {
+    "src": "./index.js",
+    "use": "@vercel/node"
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/"
+    }
+  ]
 }
