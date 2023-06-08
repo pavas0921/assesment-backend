@@ -1,0 +1,7 @@
+{
+  "appId": "your-app-id",
+  "framework": "nodejs",
+  "build": {
+    "target": "node16"
+  }
+}
